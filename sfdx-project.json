@@ -1,0 +1,12 @@
+{
+  "packageDirectories": [
+    {
+      "path": "base-app",
+      "default": true
+    }
+  ],
+  "name": "circleci",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "52.0"
+}
