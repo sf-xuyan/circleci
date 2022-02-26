@@ -5,4 +5,8 @@ public class BaseHelper {
         
         System.debug(msg);
     }
+
+    public static void dummy() {
+        System.debug('for next version');
+    }
 }
