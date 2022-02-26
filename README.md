@@ -1,18 +1,20 @@
-# Salesforce DX Project: Next Steps
-
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
-
-## How Do You Plan to Deploy Your Changes?
-
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
-
-## Configure Your Salesforce DX Project
-
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
-
-## Read All About It
-
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+# Pkg1 Pkg
+## Basic Info
+1. Permission Set: pkg1_pset
+## Key steps:
+### install base pkg
+sfdx force:package:install -w 30 -b 30 -p 04t5j0000001ARWAA2 -k Pa55word -r -u pkg1
+### assign permission set
+sfdx force:user:permset:assign -n base_pset -u pkg1
+### create pkg
+sfdx force:package:create -n my_pkg1 -d 'circleci - pkg1 pkg' -t Unlocked -r 'pkg1-app' -v DevHub -e
+### create pkg version
+sfdx force:package:version:create -p my_pkg1 -d pkg1-app -k Pa55word -w 30 -v DevHub
+### installation info
+Subscriber Package Version Id: 04t5j0000001ARqAAM
+Package Installation URL: https://login.salesforce.com/packaging/installPackage.apexp?p0=04t5j0000001ARqAAM
+## Q&A
+Q1. Permission Set管理策略？
+A1. base打包时，建议不创建permission set，当base安装到对应子包时，为子包构建permission set可以选择base包中的metadata。例如：base中有BaseHelper.cls，它在pkg1中会被pkg1_MyClass.cls引用，因此建议base不构建permission set，而在pkg1中去构建BaseHelper.cls和pkg1_MyClass.cls的权限级。
+Q2. 如何打包含依赖的pkg？
+A2. 在scratch org线安装base pkg，然后构建pkg1，随后在sfdx-project.json中需要配置base pkg的packageAliases info和依赖关系，才能打包pkg1.

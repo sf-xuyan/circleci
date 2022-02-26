@@ -1,12 +1,31 @@
 {
-  "packageDirectories": [
-    {
-      "path": "base-app",
-      "default": true
+    "packageDirectories": [
+        {
+            "path": "pkg1-app",
+            "default": true,
+            "definitionFile": "config/pkg1-scratch-def.json",
+            "dependencies": [
+                {
+                    "package": "base",
+                    "versionNumber": "0.1.0.LATEST",
+                    "branch": "base"
+                }
+            ],
+            "package": "my_pkg1",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
+            "branch": "pkg1"
+        }
+    ],
+    "name": "circleci",
+    "namespace": "",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "52.0",
+    "packageAliases": {
+        "base": "0Ho5j000000GmsDCAS",
+        "base@0.1.0-1": "04t5j0000001ARWAA2",
+        "base@0.1.0-1-base": "04t5j0000001ARlAAM",
+        "my_pkg1": "0Ho5j000000GmsICAS",
+        "my_pkg1@0.1.0-1-pkg1": "04t5j0000001ARqAAM"
     }
-  ],
-  "name": "circleci",
-  "namespace": "",
-  "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "52.0"
 }
