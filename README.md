@@ -30,4 +30,10 @@ A2. 在scratch org线安装base pkg，然后构建pkg1，随后在sfdx-project.j
 Q3. promote for production - ERROR running force:package:version:promote:  Code coverage has not been run for this version.  Code coverage must be run during version creation and meet the minimum coverage requirement to promote the version.
 A3. Ref: https://trailhead.salesforce.com/en/trailblazer-community/feed/0D54S00000A8fP8SAJ
 Q4. 包依赖安装？
-A4. pkg1依赖base pkg，在org1安装pkg1前必须先安装base pkg
+A4. 默认的，pkg1依赖base pkg，在org1安装pkg1前必须先安装base pkg。但是可以参考https://blog.texei.com/automatically-install-second-generation-packages-dependencies-with-a-custom-sfdx-plugin-36ec83130457解决此问题
+依赖包安装指南：
+`sfdx plugins:install texei-sfdx-plugin`
+1st -> 会自动从sfdx-project.json中找依赖包进行安装，无需手动指定pkgVerId
+`sfdx texei:package:dependencies:install -u org2 -v DevHub -k '1:Pa55word'`
+then
+`sfdx force:package:install -w 30 -b 30 -p 04t5j0000001AS0AAM -k Pa55word -r -u org2`
