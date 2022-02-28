@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Base Pkg
 ## Key steps:
 ### create pkg
@@ -15,7 +14,6 @@ Package Installation URL: https://login.salesforce.com/packaging/installPackage.
 ## Q&A
 Q1: `sfdx force:source:pull`工作机制？
 A1: 当scratch org元数据发生变化后，该cli可讲add / change同步到本地。如果在local system将拉取后到metadata删除了，再使用该cli将无法拉取metadata。
-=======
 # Pkg1 Pkg
 ## Basic Info
 1. Permission Set: pkg1_pset
@@ -55,4 +53,3 @@ A4. 默认的，pkg1依赖base pkg，在org1安装pkg1前必须先安装base pkg
 `sfdx texei:package:dependencies:install -u org2 -v DevHub -k '1:Pa55word'`
 then
 `sfdx force:package:install -w 30 -b 30 -p 04t5j0000001AS0AAM -k Pa55word -r -u org2`
->>>>>>> pkg1
