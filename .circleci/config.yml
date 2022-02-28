@@ -43,8 +43,9 @@ jobs:
           command: |
               if [[ "${CIRCLE_BRANCH}" = "release" ]]; then
                 # The following command can only be used on orgs that have source tracking enabled, such as sandboxes and scratch orgs.
-                echo $SFDX_AUTH_URL_UAT_SBX > ~/auth.url
-                node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
+                # echo $SFDX_AUTH_URL_UAT_SBX > ~/auth.url
+                # node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
+                node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
               elif [[ "${CIRCLE_BRANCH}" = "base" ]]; then
                 node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
               elif [[ "${CIRCLE_BRANCH}" = "pkg1" ]]; then
