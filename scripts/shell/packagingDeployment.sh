@@ -29,16 +29,17 @@ if [ "$#" -eq 0 ]; then
   echo "No parameter provided, this will be full package installation"
 fi
 
-if [ "$#" -eq 2 ]; then
-  TARGET_ORG="-u $2"
-  echo "Using specific org $2"
-fi
-
 # Defining Salesforce CLI exec, depending if it's CI or local dev machine
 if [ $CI ]; then
   echo "Script is running on CI"
   SFDX_CLI_EXEC=node_modules/sfdx-cli/bin/run
   TARGET_ORG="-u ciorg"
+fi
+
+# If the script is running on CI with the $2 specified, TARGET_ORG will be overwritten
+if [ "$#" -eq 2 ]; then
+  TARGET_ORG="-u $2"
+  echo "Using specific org $2"
 fi
 
 # Reading the to be installed package version (start with 04t) based on the alias@version key from sfdx-project.json

@@ -99,7 +99,7 @@ jobs:
       - run:
           name: Deploy UAT
           command: |
-             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH HubOrg
   run_apex_tests:
     <<: *defaults
     steps:
@@ -126,13 +126,28 @@ workflows:
       - setup_dx:
           filters:
             branches:
-              only:
-                - base
-                - pkg1
-                - release
+              only: release
       - deploy_source:
           requires:
             - setup_dx
+          filters:
+            branches:
+              only: release
+      - run_apex_tests:
+          requires:
+            - deploy_source
+          filters:
+            branches:
+              only: release
+      - install_packages_uat:
+          requires:
+            - run_apex_tests
+          filters:
+            branches:
+              only: release
+      - cleanup_scratch_org:
+          requires:
+            - run_apex_tests
           filters:
             branches:
               only: release
@@ -148,29 +163,3 @@ workflows:
           filters:
             branches:
               only: pkg1
-      - install_packages_uat:
-          requires:
-            - setup_dx
-          filters:
-            branches:
-              only: release
-      - run_apex_tests:
-          requires:
-            - deploy_source
-            - create_package_base
-            - create_package_pkg1
-            - install_packages_uat
-          filters:
-            branches:
-              ignore: master
-      - cleanup_scratch_org:
-          requires:
-            - setup_dx
-            - deploy_source
-            - create_package_base
-            - create_package_pkg1
-            - run_apex_tests
-          filters:
-            branches:
-              ignore:
-                - master
