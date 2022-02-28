@@ -17,4 +17,6 @@ IFS="," read -ra pkgs <<< "$packages"
 for pkg in "${pkgs[@]}"; do
     echo "start to uninstall pkg: $pkg"
     sfdx force:package:uninstall -p "$pkg" -u $target
+    # seconds (default), you can also use d, h, m, i.e. sleep 2m 30s
+    sleep 10
 done
