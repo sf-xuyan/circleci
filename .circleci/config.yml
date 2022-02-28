@@ -77,7 +77,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
   create_package_pkg1:
   # Creating a package for pkg1, based on the GitHub branch name.
     <<: *defaults
@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
   install_packages_uat:
   # Deploys packages to UAT sandbox.
     <<: *defaults
@@ -97,7 +97,7 @@ jobs:
       - run:
           name: Deploy UAT
           command: |
-             scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
   run_apex_tests:
     <<: *defaults
     steps:
