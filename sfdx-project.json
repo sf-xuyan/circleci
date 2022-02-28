@@ -2,11 +2,33 @@
     "packageDirectories": [
         {
             "path": "base-app",
-            "default": true,
+            "default": false,
             "package": "base",
             "versionName": "ver 0.1",
             "versionNumber": "0.1.0.NEXT",
             "definitionFile": "config/base-scratch-def.json"
+        },
+        {
+            "path": "pkg1-app",
+            "default": true,
+            "definitionFile": "config/pkg1-scratch-def.json",
+            "dependencies": [
+                {
+                    "package": "base",
+                    "versionNumber": "0.1.0.LATEST",
+                    "branch": "base"
+                }
+            ],
+            "package": "my_pkg1",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
+            "branch": "pkg1",
+            "apexTestAccess": {
+                "permissionSets": [
+                    "base_pset",
+                    "pkg1_pset"
+                ]
+            }
         }
     ],
     "name": "circleci",
@@ -16,6 +38,10 @@
     "packageAliases": {
         "base": "0Ho5j000000GmsDCAS",
         "base@0.1.0-1": "04t5j0000001ARWAA2",
-        "base@0.1.0-1-base": "04t5j0000001ARlAAM"
+        "base@0.1.0-1-base": "04t5j0000001ARlAAM",
+        "my_pkg1": "0Ho5j000000GmsICAS",
+        "my_pkg1@0.1.0-1-pkg1": "04t5j0000001ARqAAM",
+        "my_pkg1@0.1.0-2-pkg1": "04t5j0000001ARvAAM",
+        "my_pkg1@0.1.0-3-pkg1": "04t5j0000001AS0AAM"
     }
 }
