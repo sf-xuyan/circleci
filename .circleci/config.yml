@@ -1,0 +1,169 @@
+version: 2
+
+# Defining default values for all jobs
+defaults: &defaults
+  docker:
+    - image: circleci/node:latest
+
+jobs:
+  setup_dx:
+    # This command runs the preparation steps needed for the CI workflow:
+    #
+    # - Installation of the Salesforce CLI using npm
+    # - Authentication of the DevHub
+    # - Creation of a scratch org
+    #
+    # While a scratch org isn't needed in all steps it's still part of the process. The reason for this is
+    # that we need to store the sfdx configuration files for it in the workspace, so that data can be shared
+    # across different workflow steps.
+    #
+    # Keep it simple!
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install Salesforce DX
+          command: |
+              openssl enc -nosalt -aes-256-cbc -d -in secretfile/server.key.enc -out secretfile/server.key -base64 -K $DECRYPTION_KEY -iv $DECRYPTION_IV
+              export SFDX_USE_GENERIC_UNIX_KEYCHAIN=true
+              export SFDX_DOMAIN_RETRY=300
+              npm install sfdx-cli
+              node_modules/sfdx-cli/bin/run --version
+              node_modules/sfdx-cli/bin/run plugins --core
+      - run:
+          name: Authenticate DevHub
+          command: |
+              node_modules/sfdx-cli/bin/run force:auth:jwt:grant --clientid $HUB_CONSUMER_KEY --jwtkeyfile secretfile/server.key --username $HUB_USER_NAME --setdefaultdevhubusername -a HubOrg
+      - run:
+          name: Define CI Org
+          # We define the to be used CI org. Based on the branch we either create a new scratch org
+          # or we use a project variable to authenticate an existing org as target org.
+          #
+          # You can get the sfdxurl via sfdx force:org:display -u yourOrg --json --verbose from your local machine.
+          command: |
+              if [[ "${CIRCLE_BRANCH}" = "release" ]]; then
+                node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
+              elif [[ "${CIRCLE_BRANCH}" = "base" ]]; then
+                # The following command can only be used on orgs that have source tracking enabled, such as sandboxes and scratch orgs.
+                echo $SFDX_AUTH_URL_PKGING_BASE > ~/auth.url
+                node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
+              elif [[ "${CIRCLE_BRANCH}" = "pkg1" ]]; then
+                echo $SFDX_AUTH_URL_PKGING_PKG1 > ~/auth.url
+                node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
+              fi
+      - persist_to_workspace:
+          # This is an important step. If we don't store the project data (cloned GitHub source and node_modules from the CLI installation)
+          # we'd have to re-run installation for every workflow step.
+          #
+          # Also this step is crucial as we use it to share sfdx config parameters between steps.
+          root: ~/
+          paths:
+              - .sfdx/*
+              - project/*
+  deploy_source:
+  # This deploys the source to the ci scratch org.
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Push Source
+          command: |
+             node_modules/sfdx-cli/bin/run force:source:push -u ciorg
+  create_package_base:
+  # Creating a package for base, based on the GitHub branch name.
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Create and install package
+          command: |
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+  create_package_pkg1:
+  # Creating a package for pkg1, based on the GitHub branch name.
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Create and install package
+          command: |
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
+  install_packages_uat:
+  # Deploys packages to UAT sandbox.
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Deploy UAT
+          command: |
+             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH HubOrg
+  run_apex_tests:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Run Apex Tests
+          command: |
+              node_modules/sfdx-cli/bin/run force:apex:test:run -u ciorg -l RunLocalTests -c -r json -d ./test-results/apex
+      - store_artifacts:
+          destination: apex-test-results
+          path: ./test-results/apex
+      - store_test_results:
+          path: ./test-results/apex
+  cleanup_scratch_org:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Clean Up
+          command: |
+              node_modules/sfdx-cli/bin/run force:org:delete -u ciorg -p
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - setup_dx:
+          filters:
+            branches:
+              only: release
+      - deploy_source:
+          requires:
+            - setup_dx
+          filters:
+            branches:
+              only: release
+      - run_apex_tests:
+          requires:
+            - deploy_source
+          filters:
+            branches:
+              only: release
+      - install_packages_uat:
+          requires:
+            - run_apex_tests
+          filters:
+            branches:
+              only: release
+      - cleanup_scratch_org:
+          requires:
+            - run_apex_tests
+          filters:
+            branches:
+              only: release
+      - create_package_base:
+          requires:
+            - setup_dx
+          filters:
+            branches:
+              only: base
+      - create_package_pkg1:
+          requires:
+            - setup_dx
+          filters:
+            branches:
+              only: pkg1
