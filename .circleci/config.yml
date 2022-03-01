@@ -41,13 +41,13 @@ jobs:
           #
           # You can get the sfdxurl via sfdx force:org:display -u yourOrg --json --verbose from your local machine.
           command: |
-              if [[ "${CIRCLE_BRANCH}" = "release" ]]; then
+              if [[ $CIRCLE_BRANCH = "release" ]]; then
                 node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
-              elif [[ "${CIRCLE_BRANCH}" = "base" ]]; then
+              elif [[ $CIRCLE_BRANCH = "base" ]]; then
                 # The following command can only be used on orgs that have source tracking enabled, such as sandboxes and scratch orgs.
                 echo $SFDX_AUTH_URL_PKGING_BASE > ~/auth.url
                 node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
-              elif [[ "${CIRCLE_BRANCH}" = "pkg1" ]]; then
+              elif [[ $CIRCLE_BRANCH = "pkg1" ]]; then
                 echo $SFDX_AUTH_URL_PKGING_PKG1 > ~/auth.url
                 node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
               fi
