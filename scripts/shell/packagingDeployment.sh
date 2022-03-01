@@ -47,14 +47,16 @@ PACKAGE_VERSION_BASE="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSI
 PACKAGE_VERSION_PKG1="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_PKG1" '.packageAliases | .[$VERSION]' | tr -d '"')"
 
 # We're in a packaging/* branch, so we need to create a new version
-if [ $BRANCH = *"base"* ]; then
+if [ $BRANCH = "base" ]; then
   echo "Creating new package version for base"
   PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -p base-app -x -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+  echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
   sleep 300 # We've to wait for package replication.
 fi
-if [ $BRANCH = *"pkg1"* ]; then
+if [ $BRANCH = "pkg1" ]; then
   echo "Creating new package version for pkg1"
   PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -p pkg1-app -x -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+  echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
   sleep 300 # We've to wait for package replication.
 fi
 

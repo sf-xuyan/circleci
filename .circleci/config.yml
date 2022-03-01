@@ -125,15 +125,12 @@ jobs:
               node_modules/sfdx-cli/bin/run force:org:delete -u ciorg -p
 workflows:
   version: 2
-  build_and_test:
+  test_and_deploy:
     jobs:
       - setup_dx:
           filters:
             branches:
-              only: 
-                - release
-                - base
-                - pkg1
+              only: release
       - deploy_source:
           requires:
             - setup_dx
@@ -143,8 +140,6 @@ workflows:
       - run_apex_tests:
           requires:
             - deploy_source
-            - install_created_package_base
-            - install_created_package_pkg1
           filters:
             branches:
               only: release
@@ -160,6 +155,15 @@ workflows:
           filters:
             branches:
               only: release
+
+  build_and_test:
+    jobs:
+      - setup_dx:
+          filters:
+            branches:
+              only: 
+                - base
+                - pkg1
       - install_created_package_base:
           requires:
             - setup_dx
@@ -172,3 +176,12 @@ workflows:
           filters:
             branches:
               only: pkg1
+      - run_apex_tests:
+          requires:
+            - install_created_package_base
+            - install_created_package_pkg1
+          filters:
+            branches:
+              only: 
+                - base
+                - pkg1
