@@ -70,8 +70,8 @@ jobs:
           name: Push Source
           command: |
              node_modules/sfdx-cli/bin/run force:source:push -u ciorg
-  create_package_base:
-  # Creating a package for base, based on the GitHub branch name.
+  install_created_package_base:
+  # Installing a newly created package for base, based on the GitHub branch name.
     <<: *defaults
     steps:
       - attach_workspace:
@@ -80,8 +80,8 @@ jobs:
           name: Create and install package
           command: |
              bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
-  create_package_pkg1:
-  # Creating a package for pkg1, based on the GitHub branch name.
+  install_created_package_pkg1:
+  # Installing a newly created package for pkg1, based on the GitHub branch name.
     <<: *defaults
     steps:
       - attach_workspace:
@@ -130,7 +130,10 @@ workflows:
       - setup_dx:
           filters:
             branches:
-              only: release
+              only: 
+                - release
+                - base
+                - pkg1
       - deploy_source:
           requires:
             - setup_dx
@@ -140,6 +143,8 @@ workflows:
       - run_apex_tests:
           requires:
             - deploy_source
+            - install_created_package_base
+            - install_created_package_pkg1
           filters:
             branches:
               only: release
@@ -155,13 +160,13 @@ workflows:
           filters:
             branches:
               only: release
-      - create_package_base:
+      - install_created_package_base:
           requires:
             - setup_dx
           filters:
             branches:
               only: base
-      - create_package_pkg1:
+      - install_created_package_pkg1:
           requires:
             - setup_dx
           filters:
