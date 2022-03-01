@@ -63,6 +63,10 @@ fi
 # Installation in dependency order
 echo "Package installation base"
 $SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_BASE -k $packagePassword -w 10 $TARGET_ORG
-echo "Package installation pkg1"
-$SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_PKG1 -k $packagePassword -w 10 $TARGET_ORG
+
+if [[ $BRANCH = "pkg1" || $BRANCH = "release" ]]; then
+  echo "Package installation pkg1"
+  $SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_PKG1 -k $packagePassword -w 10 $TARGET_ORG
+fi
+
 echo "Done"
