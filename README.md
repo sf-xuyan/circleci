@@ -66,6 +66,8 @@ A4. 默认的，pkg1依赖base pkg，在org1安装pkg1前必须先安装base pkg
 `sfdx texei:package:dependencies:install -u org2 -v DevHub -k '1:Pa55word'`
 then
 `sfdx force:package:install -w 30 -b 30 -p 04t5j0000001AS0AAM -k Pa55word -r -u org2`
+Q5. circleci中使用context的最佳实践？
+A5. 假如setup_dx job中包含4个环境变量，不同分支需要切换不同context，但只有2个变量是有差异的，这时org级别context中配置2个(非4个)环境变量即可
 
 # CircleCI Setup
 ## Encrypt & Decrypt
