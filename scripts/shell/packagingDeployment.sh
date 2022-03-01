@@ -49,15 +49,15 @@ PACKAGE_VERSION_PKG1="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSI
 # We're in a packaging/* branch, so we need to create a new version
 if [ $BRANCH = "base" ]; then
   echo "Creating new package version for base"
-  PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -d base-app -p base -x -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+  PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -d base-app -p base -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
   echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
-  sleep 300 # We've to wait for package replication.
+  sleep 10 # We've to wait for package replication.
 fi
 if [ $BRANCH = "pkg1" ]; then
   echo "Creating new package version for pkg1"
-  PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -d pkg1-app -p my_pkg1 -x -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+  PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -d pkg1-app -p my_pkg1 -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
   echo "Newly created pkg version: $PACKAGE_VERSION_PKG1"
-  sleep 300 # We've to wait for package replication.
+  sleep 10 # We've to wait for package replication.
 fi
 
 # Installation in dependency order
