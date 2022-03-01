@@ -56,7 +56,7 @@ fi
 if [ $BRANCH = "pkg1" ]; then
   echo "Creating new package version for pkg1"
   PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -p pkg1-app -x -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
-  echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
+  echo "Newly created pkg version: $PACKAGE_VERSION_PKG1"
   sleep 300 # We've to wait for package replication.
 fi
 
