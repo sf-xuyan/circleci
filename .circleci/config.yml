@@ -108,9 +108,9 @@ jobs:
       - run:
           name: Run Apex Tests
           command: |
-              node_modules/sfdx-cli/bin/run force:apex:test:run -u ciorg -l RunLocalTests -c -r json
+              node_modules/sfdx-cli/bin/run force:apex:test:run -u ciorg -l RunLocalTests -c -r json -d ./test-results/apex
       - store_test_results:
-          path: test-results
+          path: ./test-results/apex
   cleanup_scratch_org:
     <<: *defaults
     steps:
