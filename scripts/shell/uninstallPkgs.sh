@@ -20,3 +20,13 @@ for pkg in "${pkgs[@]}"; do
     # seconds (default), you can also use d, h, m, i.e. sleep 2m 30s
     sleep 10
 done
+
+# Note: if you don't know the pkgAlias, use the following soql with tooling api to get the pkgverId for unstallation
+# SELECT 
+#     SubscriberPackage.Name, SubscriberPackageVersion.Id,
+#     SubscriberPackageVersion.Name, SubscriberPackageVersion.MajorVersion,
+#     SubscriberPackageVersion.MinorVersion,
+#     SubscriberPackageVersion.PatchVersion,
+#     SubscriberPackageVersion.BuildNumber
+# FROM InstalledSubscriberPackage
+# ORDER BY SubscriberPackageId
