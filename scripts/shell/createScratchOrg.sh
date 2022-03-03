@@ -4,8 +4,8 @@
 
 . scripts/shell/util.sh
 
-devHubName=DevHub
-subscribers=(base pkg1)
+devHubName=org1
+subscribers=(base pkg1 ciorg)
 scratchOrgName=$1
 defaultGroup="feature" # suggested value: feature, packaging
 scratchDefPath=""
@@ -24,9 +24,9 @@ fi
 [[ ${subscribers[*]} =~ (^|[[:space:]])"$scratchOrgName"($|[[:space:]]) ]] && scratchDefPath="config/$scratchOrgName-scratch-def.json" || showErrLog "scratchOrgName must be one of the -> ${subscribers[*]}."
 
 # Defining Salesforce CLI exec, depending if it's CI or local dev machine
-# if [ $CI ]; then
-#     scratchDefPath=config/project-scratch-def.json
-# fi
+if [ $scratchOrgName = "ciorg" ]; then
+    scratchDefPath=config/project-scratch-def.json
+fi
 
 sfdx force:config:set defaultdevhubusername=$devHubName
 scratchOrgName="$defaultGroup/$scratchOrgName"
