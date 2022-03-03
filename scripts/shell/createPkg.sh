@@ -4,7 +4,7 @@
 
 . scripts/shell/util.sh
 
-devHubName=DevHub
+devHubName=org2
 path=""
 packagetype=Unlocked # [Managed | Unlocked]
 subscribers=(base pkg1)

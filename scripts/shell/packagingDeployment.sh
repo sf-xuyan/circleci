@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# get started -> bash scripts/shell/packagingDeployment.sh local org2
+# get started -> bash scripts/shell/packagingDeployment.sh all org1
 # required -> replace packageVersionId with the newest one for 2 PACKAGE_VERSION related variables
 # desc -> install packages in target org
+
+. scripts/shell/util.sh
 
 # Script for packaging branch creation
 
@@ -16,55 +18,57 @@
 #   as parameter (instead of the CIRCLE_BRANCH environment variable).
 
 # Default values
-BRANCH=$1
+subscribers=(base pkg1 all)
+PACKAGE=$1
+TARGET_ORG="-u $2"
+BRANCH=$3 # optional - [null, release]
 SFDX_CLI_EXEC=sfdx
-TARGET_ORG=''
 packagePassword=Pa55word
 # packageAliases
 PACKAGE_VERSION_BASE="base@0.1.0-1-base"
-PACKAGE_VERSION_PKG1="my_pkg1@0.1.0-3-pkg1"
+PACKAGE_VERSION_PKG1="pkg1@0.1.0-1-pkg1"
 
-# "$#" -> the num of parameters
-if [ "$#" -eq 0 ]; then
-  echo "No parameter provided, this will be full package installation"
+# validation rule - param1 must be in subscribers
+if [[ ! ${subscribers[*]} =~ (^|[[:space:]])"$PACKAGE"($|[[:space:]]) ]]; then
+    showErrLog "No PACKAGE parameter provided, available value -> ${subscribers[*]}."
 fi
+
+# validation rule - param2 must be specified
+if [ "$#" -eq 1 ]; then
+    showErrLog "No TARGET_ORG parameter provided."
+fi
+
+echo "Using specific org $2"
 
 # Defining Salesforce CLI exec, depending if it's CI or local dev machine
 if [ $CI ]; then
   echo "Script is running on CI"
   SFDX_CLI_EXEC=node_modules/sfdx-cli/bin/run
-  TARGET_ORG="-u ciorg"
-fi
-
-# If the script is running on CI with the $2 specified, TARGET_ORG will be overwritten
-if [ "$#" -eq 2 ]; then
-  TARGET_ORG="-u $2"
-  echo "Using specific org $2"
 fi
 
 # Reading the to be installed package version (start with 04t) based on the alias@version key from sfdx-project.json
 PACKAGE_VERSION_BASE="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_BASE" '.packageAliases | .[$VERSION]' | tr -d '"')"
 PACKAGE_VERSION_PKG1="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_PKG1" '.packageAliases | .[$VERSION]' | tr -d '"')"
 
-# We're in a packaging/* branch, so we need to create a new version
-if [ $BRANCH = "base" ]; then
-  echo "Creating new package version for base"
-  PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -d base-app -p base -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
-  echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
-  sleep 10 # We've to wait for package replication.
-fi
-if [ $BRANCH = "pkg1" ]; then
-  echo "Creating new package version for pkg1"
-  PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -d pkg1-app -p my_pkg1 -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
-  echo "Newly created pkg version: $PACKAGE_VERSION_PKG1"
-  sleep 10 # We've to wait for package replication.
-fi
-
 # Installation in dependency order
-echo "Package installation base"
-$SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_BASE -k $packagePassword -w 10 $TARGET_ORG
+if [[ $PACKAGE = "base" || $PACKAGE = "all" ]]; then
+  if [ $BRANCH = "release" ]; then
+    echo "Creating new package version for base"
+    PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -d base-app -p base -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+    echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
+    sleep 10 # We've to wait for package replication.
+  fi
+  echo "Package installation base"
+  $SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_BASE -k $packagePassword -w 10 $TARGET_ORG
+fi
 
-if [[ $BRANCH = "pkg1" || $BRANCH = "release" ]]; then
+if [[ $PACKAGE = "pkg1" || $PACKAGE = "all" ]]; then
+  if [ $BRANCH = "release" ]; then
+    echo "Creating new package version for pkg1"
+    PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -d pkg1-app -p pkg1 -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+    echo "Newly created pkg version: $PACKAGE_VERSION_PKG1"
+    sleep 10 # We've to wait for package replication.
+  fi
   echo "Package installation pkg1"
   $SFDX_CLI_EXEC force:package:install -p $PACKAGE_VERSION_PKG1 -k $packagePassword -w 10 $TARGET_ORG
 fi

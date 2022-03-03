@@ -1,9 +1,9 @@
 # Overview
 ## Branch Strategy
-            master (for cd process)
-        release (ci only)
-base
-pkg1
+            master (no use)
+        release (cicd)
+base (ci only)
+pkg1 (ci only)
 template (used for new feature branch)
 
 ## SFDX Env Strategy
@@ -81,10 +81,12 @@ Here you can use encrypt_key.sh to convert `server.key` to `server.key.enc`.
 | HUB_USER_NAME             | HubOrg (wilson@instance1.com) - This username is the username that you use to access your Dev Hub.            |
 | DECRYPTION_KEY            | `server.key` encryption key.                                                                                  |
 | DECRYPTION_IV             | `server.key` encryption initialization Vector.                                                                |
-| SFDX_AUTH_URL_PKGING_BASE | DevHub (wilson@tw.com.psa) - auth.url can be gotten by running createScratchOrg.sh only when devhub authed via web method |
-| SFDX_AUTH_URL_PKGING_PKG1 | DevHub (wilson@tw.com.psa) - auth.url can be gotten by running createScratchOrg.sh only when devhub authed via web method |
+| SFDX_AUTH_URL_PKGING_BASE (no use) | the scratch org of DevHub (wilson@tw.com.psa) - auth.url can be gotten by running createScratchOrg.sh only when devhub authed via web method |
+| SFDX_AUTH_URL_PKGING_PKG1 (no use) | the scratch org of DevHub (wilson@tw.com.psa) - auth.url can be gotten by running createScratchOrg.sh only when devhub authed via web method |
+| SFDX_AUTH_URL_PKGING_CIORG         | the scratch org of Org2Hub (wilson@instance2.com) - auth.url can be gotten by running createScratchOrg.sh only when devhub authed via web method |
 
 ## Limitations
+For org1 and org2, but not applicable for DevHub, (3, 6, 6)
 | Name                   | Max |
 | ---------------------- | --- |
 | ActiveScratchOrgs      |  5  |
@@ -92,12 +94,11 @@ Here you can use encrypt_key.sh to convert `server.key` to `server.key.enc`.
 | Package2VersionCreates | 10  |
 
 ## Involved Orgs
-| Name                          | Usage                                       |
-| ----------------------------- | ------------------------------------------- |
-| Local DevHub                  | `DEV`                                       |
-| base                          | DEV (scratch org)                           |
-| pkg1                          | DEV (scratch org)                           |
-| ciorg (packaging/base)        | CICD (auth:sfdxurl:store + pkgv creation)   |
-| ciorg (packaging/pkg1)        | CICD (auth:sfdxurl:store + pkgv creation)   |
-| CI HubOrg                     | `UAT` (CICD)                                |
-| ciorg                         | CI (scratch org)                            |
+| Name                          | Usage                                          |
+| ----------------------------- | ---------------------------------------------- |
+| Local org2 (Org2Hub)          | `DEV`                                          |
+| base (no use)                 | DEV (scratch org)                              |
+| pkg1 (no use)                 | DEV (scratch org)                              |
+| CI HubOrg                     | `UAT` (CICD)                                   |
+| ciorg                         | CI (one-time scratch org created from Org2Hub) |
+| ciorg                         | CI (fix scratch org created from HubOrg)       |
