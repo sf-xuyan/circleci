@@ -144,6 +144,7 @@ workflows:
           filters:
             branches:
               only: master
+              
   # Only used for release branch
   # Run in packaging/ciorg for installation, but build version run in org2 (Org2Hub)
   test_for_packaing:
@@ -152,7 +153,7 @@ workflows:
           filters:
             branches:
               only: release
-        context: Org2Hub
+          context: Org2Hub
       - install_created_pkg_base:
           requires:
             - setup_dx
