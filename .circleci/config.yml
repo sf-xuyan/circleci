@@ -94,16 +94,16 @@ jobs:
           name: Create and install package
           command: |
              bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH HubOg
-  install_pkgs_uat:
-  # Deploys packages to UAT sandbox.
+  install_pkgs_prod:
+  # Deploys packages to prod.
     <<: *defaults
     steps:
       - attach_workspace:
           at: ~/
       - run:
-          name: Deploy UAT
+          name: Deploy Prod
           command: |
-             # master only, UAT is org1
+             # master only, Prod is org1
              bash scripts/shell/packagingDeployment.sh all HubOrg none
   run_apex_tests:
     <<: *defaults
@@ -131,14 +131,15 @@ jobs:
 workflows:
   version: 2
   # Only used for master branch
-  # deploy packages to uat for QA
-  deploy_to_uat:
+  # deploy packages to 
+  # ToDo: need to promote the pkg in test_for_packaing workflow before deploying to prod
+  deploy_to_prod:
     jobs:
       - setup_dx:
           filters:
             branches:
               only: master
-      - install_pkgs_uat:
+      - install_pkgs_prod:
           requires:
             - setup_dx
           filters:
@@ -147,6 +148,7 @@ workflows:
               
   # Only used for release branch
   # Run in packaging/ciorg for installation, but build version run in org2 (Org2Hub)
+  # For QA purpose
   test_for_packaing:
     jobs:
       - setup_dx:
