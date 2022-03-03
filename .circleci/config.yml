@@ -34,7 +34,6 @@ jobs:
       - run:
           name: Authenticate DevHub
           command: |
-              if
               node_modules/sfdx-cli/bin/run force:auth:jwt:grant --clientid $HUB_CONSUMER_KEY --jwtkeyfile secretfile/server.key --username $HUB_USER_NAME --setdefaultdevhubusername -a HubOrg
       - run:
           name: Define CI Org
