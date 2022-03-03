@@ -1,10 +1,10 @@
 #!/bin/bash
-# get started -> bash scripts/shell/createPkgVersion.sh
+# get started -> bash scripts/shell/createPkgVersion.sh base
 # desc -> For manually pkg version creation
 
 . scripts/shell/util.sh
 
-devHubName=DevHub
+devHubName=org2
 path=''
 subscribers=(base pkg1)
 packageName=$1

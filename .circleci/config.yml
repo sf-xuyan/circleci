@@ -29,6 +29,7 @@ jobs:
               export SFDX_DOMAIN_RETRY=300
               npm install sfdx-cli
               node_modules/sfdx-cli/bin/run --version
+              node_modules/sfdx-cli/bin/run plugins:install texei-sfdx-plugin
               node_modules/sfdx-cli/bin/run plugins --core
       - run:
           name: Authenticate DevHub
@@ -42,14 +43,11 @@ jobs:
           # You can get the sfdxurl via sfdx force:org:display -u yourOrg --json --verbose from your local machine.
           command: |
               if [[ $CIRCLE_BRANCH = "release" ]]; then
-                node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
-              elif [[ $CIRCLE_BRANCH = "base" ]]; then
                 # The following command can only be used on orgs that have source tracking enabled, such as sandboxes and scratch orgs.
-                echo $SFDX_AUTH_URL_PKGING_BASE > ~/auth.url
+                echo $SFDX_AUTH_URL_PKGING_CIORG > ~/auth.url
                 node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
-              elif [[ $CIRCLE_BRANCH = "pkg1" ]]; then
-                echo $SFDX_AUTH_URL_PKGING_PKG1 > ~/auth.url
-                node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
+              elif [[ $CIRCLE_BRANCH = "base" || $CIRCLE_BRANCH = "pkg1" ]]; then
+                node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
               fi
       - persist_to_workspace:
           # This is an important step. If we don't store the project data (cloned GitHub source and node_modules from the CLI installation)
@@ -69,8 +67,12 @@ jobs:
       - run:
           name: Push Source
           command: |
-             node_modules/sfdx-cli/bin/run force:source:push -u ciorg
-  install_created_package_base:
+              # to push pkg1 source to ciorg, we need to install dependency pkg first
+              if [[ $CIRCLE_BRANCH = "pkg1" ]]; then
+                node_modules/sfdx-cli/bin/run texei:package:dependencies:install -u ciorg -v HubOrg -k "1:Pa55word" -b "base"
+              fi
+              node_modules/sfdx-cli/bin/run force:source:push -u ciorg
+  install_created_pkg_base:
   # Installing a newly created package for base, based on the GitHub branch name.
     <<: *defaults
     steps:
@@ -79,8 +81,8 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
-  install_created_package_pkg1:
+             bash scripts/shell/packagingDeployment.sh base ciorg $CIRCLE_BRANCH
+  install_created_pkg_pkg1:
   # Installing a newly created package for pkg1, based on the GitHub branch name.
     <<: *defaults
     steps:
@@ -89,8 +91,8 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH
-  install_packages_uat:
+             bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH
+  install_pkgs_uat:
   # Deploys packages to UAT sandbox.
     <<: *defaults
     steps:
@@ -99,7 +101,7 @@ jobs:
       - run:
           name: Deploy UAT
           command: |
-             bash scripts/shell/packagingDeployment.sh $CIRCLE_BRANCH HubOrg
+             bash scripts/shell/packagingDeployment.sh all HubOrg $CIRCLE_BRANCH
   run_apex_tests:
     <<: *defaults
     steps:
@@ -125,37 +127,39 @@ jobs:
               node_modules/sfdx-cli/bin/run force:org:delete -u ciorg -p
 workflows:
   version: 2
-  test_and_deploy:
+  # Only used for release branch
+  test_and_release:
     jobs:
       - setup_dx:
           filters:
             branches:
               only: release
-      - deploy_source:
+      - install_created_pkg_base:
           requires:
             - setup_dx
           filters:
             branches:
               only: release
+      - install_created_pkg_pkg1:
+          requires:
+            - install_created_pkg_base
+          filters:
+            branches:
+              only: release
       - run_apex_tests:
           requires:
-            - deploy_source
+            - install_created_pkg_pkg1
           filters:
             branches:
               only: release
-      - install_packages_uat:
-          requires:
-            - run_apex_tests
-          filters:
-            branches:
-              only: release
-      - cleanup_scratch_org:
+      - install_pkgs_uat:
           requires:
             - run_apex_tests
           filters:
             branches:
               only: release
 
+  # Only used for base & pkg1 branches
   build_and_test:
     jobs:
       - setup_dx:
@@ -164,23 +168,26 @@ workflows:
               only: 
                 - base
                 - pkg1
-          context: DevHub
-      - install_created_package_base:
+          context: Org2Hub
+      - deploy_source:
           requires:
             - setup_dx
           filters:
             branches:
-              only: base
-      - install_created_package_pkg1:
-          requires:
-            - setup_dx
-          filters:
-            branches:
-              only: pkg1
+              only: 
+                - base
+                - pkg1
       - run_apex_tests:
           requires:
-            - install_created_package_base
-            - install_created_package_pkg1
+            - deploy_source
+          filters:
+            branches:
+              only: 
+                - base
+                - pkg1
+      - cleanup_scratch_org:
+          requires:
+            - run_apex_tests
           filters:
             branches:
               only: 
