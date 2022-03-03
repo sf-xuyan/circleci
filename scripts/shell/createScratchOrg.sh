@@ -1,10 +1,10 @@
 #!/bin/bash
-# get started -> bash scripts/shell/createScratchOrg.sh base packaging
+# get started -> bash scripts/shell/createScratchOrg.sh ciorg packaging
 # desc: used for creating one-time feature or packaing scratch org, the auth.url will be used as ci env variable
 
 . scripts/shell/util.sh
 
-devHubName=org1
+devHubName=org2
 subscribers=(base pkg1 ciorg)
 scratchOrgName=$1
 defaultGroup="feature" # suggested value: feature, packaging
