@@ -83,7 +83,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh base ciorg $CIRCLE_BRANCH HubOg
+             bash scripts/shell/packagingDeployment.sh base ciorg $CIRCLE_BRANCH HubOrg
   install_created_pkg_pkg1:
   # Installing a newly created package for pkg1, based on the GitHub branch name.
     <<: *defaults
@@ -93,7 +93,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH HubOg
+             bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH HubOrg
   install_pkgs_prod:
   # Deploys packages to prod.
     <<: *defaults
