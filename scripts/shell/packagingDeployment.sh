@@ -53,6 +53,9 @@ if [[ "$BRANCH" = "release" && "$#" -eq 3 ]]; then
     showErrLog "No HUB_ORG parameter provided."
 fi
 
+$SFDX_CLI_EXEC force:org:display -u $TARGET_ORG
+$SFDX_CLI_EXEC force:org:display -u $HUB_ORG
+
 # Defining Salesforce CLI exec, depending if it's CI or local dev machine
 if [ $CI ]; then
   echo "Script is running on CI"
@@ -62,6 +65,9 @@ fi
 # Reading the to be installed package version (start with 04t) based on the alias@version key from sfdx-project.json
 PACKAGE_VERSION_BASE="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_BASE" '.packageAliases | .[$VERSION]' | tr -d '"')"
 PACKAGE_VERSION_PKG1="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_PKG1" '.packageAliases | .[$VERSION]' | tr -d '"')"
+
+echo "Base verId extracted from json file: $PACKAGE_VERSION_BASE."
+echo "Base verId extracted from json file: $PACKAGE_VERSION_PKG1."
 
 # Installation in dependency order
 if [[ $PACKAGE = "base" || $PACKAGE = "all" ]]; then
