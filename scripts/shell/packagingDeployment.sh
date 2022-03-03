@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# get started -> bash scripts/shell/packagingDeployment.sh all org1 none
+# get started -> bash scripts/shell/packagingDeployment.sh all org1
 # required -> replace packageVersionId with the newest one for 2 PACKAGE_VERSION related variables
 # desc -> install packages in target org
 
@@ -21,8 +21,7 @@
 subscribers=(base pkg1 all)
 PACKAGE=$1
 TARGET_ORG="-u $2" # required
-BRANCH=$3 # required - [none, release]
-HUB_ORG=$4 # required for branch = release
+BRANCH=$3 # optional - [null, release]
 SFDX_CLI_EXEC=sfdx
 packagePassword=Pa55word
 # packageAliases
@@ -41,26 +40,11 @@ fi
 
 echo "Installation org is: $2"
 
-# validation rule - param3 must be specified
-if [ "$#" -eq 2 ]; then
-    showErrLog "No BRANCH parameter provided."
-fi
-
-echo "BRANCH is: $3"
-
-# validation rule - param4 must be specified only when BRANCH = release
-if [[ "$BRANCH" = "release" && "$#" -eq 3 ]]; then
-    showErrLog "No HUB_ORG parameter provided."
-fi
-
 # Defining Salesforce CLI exec, depending if it's CI or local dev machine
 if [ $CI ]; then
   echo "Script is running on CI"
   SFDX_CLI_EXEC=node_modules/sfdx-cli/bin/run
 fi
-
-$SFDX_CLI_EXEC force:org:display -u $TARGET_ORG
-$SFDX_CLI_EXEC force:org:display -u $HUB_ORG
 
 # Reading the to be installed package version (start with 04t) based on the alias@version key from sfdx-project.json
 PACKAGE_VERSION_BASE="$(cat sfdx-project.json | jq --arg VERSION "$PACKAGE_VERSION_BASE" '.packageAliases | .[$VERSION]' | tr -d '"')"
@@ -73,7 +57,7 @@ echo "Base verId extracted from json file: $PACKAGE_VERSION_PKG1."
 if [[ $PACKAGE = "base" || $PACKAGE = "all" ]]; then
   if [ $BRANCH = "release" ]; then
     echo "Creating new package version for base"
-    PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -v $HUB_ORG -d base-app -p base -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+    PACKAGE_VERSION_BASE="$($SFDX_CLI_EXEC force:package:version:create -d base-app -p base -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
     echo "Newly created pkg version: $PACKAGE_VERSION_BASE"
     sleep 10 # We've to wait for package replication.
   fi
@@ -84,7 +68,7 @@ fi
 if [[ $PACKAGE = "pkg1" || $PACKAGE = "all" ]]; then
   if [ $BRANCH = "release" ]; then
     echo "Creating new package version for pkg1"
-    PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -v $HUB_ORG -d pkg1-app -p pkg1 -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
+    PACKAGE_VERSION_PKG1="$($SFDX_CLI_EXEC force:package:version:create -d pkg1-app -p pkg1 -k $packagePassword -w 10 --json | jq '.result.SubscriberPackageVersionId' | tr -d '"')"
     echo "Newly created pkg version: $PACKAGE_VERSION_PKG1"
     sleep 10 # We've to wait for package replication.
   fi

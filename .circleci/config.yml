@@ -43,11 +43,11 @@ jobs:
           #
           # You can get the sfdxurl via sfdx force:org:display -u yourOrg --json --verbose from your local machine.
           command: |
-              if [[ $CIRCLE_BRANCH = "release" ]]; then
+              if [[ $CIRCLE_BRANCH = "master" ]]; then
                 # The following command can only be used on orgs that have source tracking enabled, such as sandboxes and scratch orgs.
                 echo $SFDX_AUTH_URL_PKGING_CIORG > ~/auth.url
                 node_modules/sfdx-cli/bin/run force:auth:sfdxurl:store -s -a ciorg -f ~/auth.url
-              elif [[ $CIRCLE_BRANCH = "base" || $CIRCLE_BRANCH = "pkg1" ]]; then
+              elif [[ $CIRCLE_BRANCH = "base" || $CIRCLE_BRANCH = "pkg1" || $CIRCLE_BRANCH = "release" ]]; then
                 node_modules/sfdx-cli/bin/run force:org:create -v HubOrg -s -f config/project-scratch-def.json -a ciorg -d 1
               fi
       - persist_to_workspace:
@@ -71,7 +71,7 @@ jobs:
               # to push pkg1 source to ciorg, we need to install dependency pkg first
               if [[ $CIRCLE_BRANCH = "pkg1" ]]; then
                 # node_modules/sfdx-cli/bin/run texei:package:dependencies:install -u ciorg -v HubOrg -k "1:Pa55word" -b "base"
-                bash scripts/shell/packagingDeployment.sh base ciorg none
+                bash scripts/shell/packagingDeployment.sh base ciorg
               fi
               node_modules/sfdx-cli/bin/run force:source:push -u ciorg
   install_created_pkg_base:
@@ -83,7 +83,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh base ciorg $CIRCLE_BRANCH HubOrg
+             bash scripts/shell/packagingDeployment.sh base ciorg $CIRCLE_BRANCH
   install_created_pkg_pkg1:
   # Installing a newly created package for pkg1, based on the GitHub branch name.
     <<: *defaults
@@ -93,7 +93,7 @@ jobs:
       - run:
           name: Create and install package
           command: |
-             bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH HubOrg
+             bash scripts/shell/packagingDeployment.sh pkg1 ciorg $CIRCLE_BRANCH
   install_pkgs_prod:
   # Deploys packages to prod.
     <<: *defaults
@@ -104,7 +104,7 @@ jobs:
           name: Deploy Prod
           command: |
              # master only, Prod is org1
-             bash scripts/shell/packagingDeployment.sh all HubOrg none
+             bash scripts/shell/packagingDeployment.sh all HubOrg
   run_apex_tests:
     <<: *defaults
     steps:
@@ -139,6 +139,7 @@ workflows:
           filters:
             branches:
               only: master
+          context: Org2Hub
       - install_pkgs_prod:
           requires:
             - setup_dx
