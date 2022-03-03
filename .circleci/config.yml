@@ -29,7 +29,8 @@ jobs:
               export SFDX_DOMAIN_RETRY=300
               npm install sfdx-cli
               node_modules/sfdx-cli/bin/run --version
-              node_modules/sfdx-cli/bin/run plugins:install texei-sfdx-plugin
+              # TODO: check why not work
+              # node_modules/sfdx-cli/bin/run plugins:install texei-sfdx-plugin
               node_modules/sfdx-cli/bin/run plugins --core
       - run:
           name: Authenticate DevHub
@@ -69,7 +70,8 @@ jobs:
           command: |
               # to push pkg1 source to ciorg, we need to install dependency pkg first
               if [[ $CIRCLE_BRANCH = "pkg1" ]]; then
-                node_modules/sfdx-cli/bin/run texei:package:dependencies:install -u ciorg -v HubOrg -k "1:Pa55word" -b "base"
+                # node_modules/sfdx-cli/bin/run texei:package:dependencies:install -u ciorg -v HubOrg -k "1:Pa55word" -b "base"
+                bash scripts/shell/packagingDeployment.sh base ciorg
               fi
               node_modules/sfdx-cli/bin/run force:source:push -u ciorg
   install_created_pkg_base:
